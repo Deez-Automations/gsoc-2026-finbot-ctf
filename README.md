@@ -103,9 +103,25 @@ The multi-agent orchestrator captures each agent's summary and hands it to the n
 
 ## What this adds up to
 
-None of these thirteen patches are flashy on their own. A missing null check, a byte-slice done wrong, a status check that used the wrong enum value. But every one of them got the same treatment: read the real code first, write a failing test that proves the issue, fix it, get it reviewed, and check it actually merges cleanly next to everything else in flight. Several corrected real mistakes in the reports that described them. Several turned out to be bigger than reported once I actually traced the code instead of taking the write-up at face value.
+The batch spans a real severity range: critical and high-severity issues (broken access control, an unauthenticated SSRF with a missing-authentication gap layered on top of it, a self-introduced denial-of-service caught and closed before it ever shipped) down to medium-severity payment-pipeline correctness and data-integrity gaps. Every one went through the same process: read the real code first, write a failing test that proves the issue, fix it, get it independently reviewed, and check it actually merges cleanly next to everything else in flight. Several patches corrected real mistakes in the reports that described the underlying issue. Several turned out to be bigger in scope than reported, once I traced the code myself instead of taking the write-up at face value.
 
-That's the work. Small individually, and a real, cumulative improvement to a platform other people are actively learning security on.
+That's the work: a real, cumulative improvement to a platform other people are actively learning security on.
+
+---
+
+## Lessons learned
+
+The biggest one was structural. An exploit that depends on a language model making one specific, risky judgment call isn't reliable, no matter how carefully it's worded or how many times it worked before. Every challenge and patch that ultimately held up shared the opposite shape: one ordinary action, then a mechanical, code-level check.
+
+The second came late. Checking an issue's own assignees and comments before starting work isn't enough on its own. It missed four real, pre-existing pull requests from other contributors, because none of them had ever been cross-posted onto the issue they addressed. Fixed by cross-referencing the full list of open pull requests by content, not just the one issue's own thread.
+
+The third: a security review of your own new code isn't a formality. Across the final batch, a dedicated review caught a real, self-introduced problem in the fix itself, not the original bug, in most cases. That has to be exercised deliberately every time, not assumed.
+
+---
+
+## Acknowledgements
+
+Thanks to my mentors, Rishi Mondal and Sanjeev Agarwal, for direct feedback throughout the program and for taking the reliability concerns raised in July seriously instead of pushing to ship weak content on schedule. Thanks to FinBot's founders, Venkata Sai Kishore Modalavalasa and Hellen, for showing up to every biweekly live review in person despite their own busy schedules, and for giving clear, final direction at the points in this project that needed it most. Thanks to the OWASP GenAI Security team and the wider FinBot CTF contributor community, whose own quality-assurance work on the codebase's issue backlog made a substantial share of this project possible.
 
 ---
 
