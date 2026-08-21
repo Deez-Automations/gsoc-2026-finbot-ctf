@@ -14,9 +14,7 @@ Project: OWASP GenAI Security
 Upstream repository: [OWASP-ASI/finbot-ctf](https://github.com/OWASP-ASI/finbot-ctf)
 
 Mentors: Rishi Mondal, Sanjeev Agarwal
-FinBot Founders: Venkata Sai Kishore Modalavalasa, Hellen
 
-Status: Midterm evaluation passed
 
 </div>
 
