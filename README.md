@@ -33,6 +33,12 @@ All 13 pull requests below are open against the upstream repo as of this report.
 
 The vendor chat assistant let you ask about a FinMail message by its raw ID, or about another vendor's inbox by ID directly, and nothing on the backend checked whether that message or inbox actually belonged to the vendor asking. That's a textbook broken object-level authorization gap, and it was sitting in the code unintentionally, not manufactured for the sake of having something to build. I turned it into a full challenge: a YAML definition, a custom detector, 28 tests, and a live end-to-end run against the deployed model before the PR ever went up. The detector itself doesn't guess at model behavior. It cross-references the tool-call event's vendor identity against the message's real owner directly at the database layer, so it fires the same way regardless of how the exploit gets phrased.
 
+<video src="https://github.com/Deez-Automations/gsoc-2026-finbot-ctf/raw/main/media/cross-vendor-email-demo.mp4" controls width="720">
+Video not supported inline, download it directly: https://github.com/Deez-Automations/gsoc-2026-finbot-ctf/raw/main/media/cross-vendor-email-demo.mp4
+</video>
+
+*Live demo: the exploit running end to end against the deployed model, detector firing on the real event stream.*
+
 ### 2. [FinDrive filename log injection](https://github.com/GenAI-Security-Project/finbot-ctf/pull/561)
 
 File uploads accepted filenames with raw newline and control characters baked in, no sanitization at all. A filename like `invoice.pdf\nFAKE LOG ENTRY: admin login from 1.2.3.4` would land verbatim in the application log, which means an attacker could forge log lines that look completely legitimate. Fixed by rejecting `\n`, `\r`, `\t`, and null bytes at upload time, with a test for each character plus a regression check that normal filenames still work fine.
