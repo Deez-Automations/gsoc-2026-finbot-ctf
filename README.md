@@ -105,7 +105,7 @@ The multi-agent orchestrator captures each agent's summary and hands it to the n
 
 The batch spans a real severity range: critical and high-severity issues (broken access control, an unauthenticated SSRF with a missing-authentication gap layered on top of it, a self-introduced denial-of-service caught and closed before it ever shipped) down to medium-severity payment-pipeline correctness and data-integrity gaps. Every one went through the same process: read the real code first, write a failing test that proves the issue, fix it, get it independently reviewed, and check it actually merges cleanly next to everything else in flight. Several patches corrected real mistakes in the reports that described the underlying issue. Several turned out to be bigger in scope than reported, once I traced the code myself instead of taking the write-up at face value.
 
-That's the work: a real, cumulative improvement to a platform other people are actively learning security on.
+That's the work: a real, cumulative improvement to a platform other people are actively learning security on, roughly 370 hours across the coding period, outside of community bonding and excluding one week lost entirely to illness.
 
 ---
 
