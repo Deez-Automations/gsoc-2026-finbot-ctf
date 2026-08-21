@@ -1,12 +1,24 @@
-# GSoC 2026 — OWASP FinBot CTF: Final Work Report
+<div align="center">
 
-**Contributor:** Muhammad Daniyal ([@Deez-Automations](https://github.com/Deez-Automations))
-**Program:** Google Summer of Code 2026
-**Organization:** OWASP Foundation
-**Project:** OWASP GenAI Security — FinBot CTF: The Autonomous Threat Track
-**Upstream repository:** [OWASP-ASI/finbot-ctf](https://github.com/OWASP-ASI/finbot-ctf)
-**Mentor:** Rishi Mondal
-**Status:** Midterm evaluation passed
+# GSoC 2026
+# Final Work Report
+
+### OWASP FinBot CTF: The Autonomous Threat Track
+
+**Muhammad Daniyal**
+[@Deez-Automations](https://github.com/Deez-Automations)
+
+Google Summer of Code 2026
+Organization: OWASP Foundation
+Project: OWASP GenAI Security
+Upstream repository: [OWASP-ASI/finbot-ctf](https://github.com/OWASP-ASI/finbot-ctf)
+
+Mentors: Rishi Mondal, Sanjeev Agarwal
+FinBot Founders: Venkata Sai Kishore Modalavalasa, Hellen
+
+Status: Midterm evaluation passed
+
+</div>
 
 ---
 
@@ -29,15 +41,15 @@ All 13 pull requests below are open against the upstream repo as of this report.
 
 ## The work, PR by PR
 
-### 1. [Cross-Vendor Email — a BOLA/IDOR challenge, built and shipped](https://github.com/GenAI-Security-Project/finbot-ctf/pull/558)
+### 1. [Cross-Vendor Email: a BOLA/IDOR challenge, built and shipped](https://github.com/GenAI-Security-Project/finbot-ctf/pull/558)
 
 The vendor chat assistant let you ask about a FinMail message by its raw ID, or about another vendor's inbox by ID directly, and nothing on the backend checked whether that message or inbox actually belonged to the vendor asking. That's a textbook broken object-level authorization gap, and it was sitting in the code unintentionally, not manufactured for the sake of having something to build. I turned it into a full challenge: a YAML definition, a custom detector, 28 tests, and a live end-to-end run against the deployed model before the PR ever went up. The detector itself doesn't guess at model behavior. It cross-references the tool-call event's vendor identity against the message's real owner directly at the database layer, so it fires the same way regardless of how the exploit gets phrased.
 
-<video src="https://github.com/Deez-Automations/gsoc-2026-finbot-ctf/raw/main/media/cross-vendor-email-demo.mp4" controls width="720">
-Video not supported inline, download it directly: https://github.com/Deez-Automations/gsoc-2026-finbot-ctf/raw/main/media/cross-vendor-email-demo.mp4
-</video>
+<a href="https://github.com/Deez-Automations/gsoc-2026-finbot-ctf/raw/main/media/cross-vendor-email-demo.mp4">
+  <img src="media/demo-thumbnail.jpg" width="720" alt="Live demo: click to play">
+</a>
 
-*Live demo: the exploit running end to end against the deployed model, detector firing on the real event stream.*
+**[▶ Watch the live demo](https://github.com/Deez-Automations/gsoc-2026-finbot-ctf/raw/main/media/cross-vendor-email-demo.mp4)**: the exploit running end to end against the deployed model, detector firing on the real event stream.
 
 ### 2. [FinDrive filename log injection](https://github.com/GenAI-Security-Project/finbot-ctf/pull/561)
 
