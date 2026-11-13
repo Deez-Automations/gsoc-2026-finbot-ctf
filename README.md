@@ -11,9 +11,11 @@
 Google Summer of Code 2026
 Organization: OWASP Foundation
 Project: OWASP GenAI Security
-Upstream repository: [OWASP-ASI/finbot-ctf](https://github.com/OWASP-ASI/finbot-ctf)
+Upstream repository: [GenAI-Security-Project/finbot-ctf](https://github.com/GenAI-Security-Project/finbot-ctf)
 
 Mentors: Rishi Mondal, Sanjeev Agarwal
+
+FinBot chief architect: Venkata Sai Kishore Modalavalasa
 
 
 </div>
@@ -24,7 +26,7 @@ Mentors: Rishi Mondal, Sanjeev Agarwal
 
 FinBot CTF is a training platform built around a simulated agentic finance system. Vendors, invoices, payments, and a set of LLM-powered agents that process all of it, wired up so players can practice real AI security exploits against something that behaves like production software instead of a toy example.
 
-My proposal was to design and build four advanced red-track CTF challenges in categories the platform had zero coverage for: insecure communication between agents, cascading autonomous failures, human-trust exploitation, and rogue-agent persistence. I built all four. Then I live-tested them against the platform's actual production LLM, and the results didn't match the design docs. Every one of them hinged on the model making a single risky judgment call under the right kind of pressure, and that call only landed reliably somewhere around 30 to 40 percent of the time. A challenge that works less than half the time isn't a challenge, it's a slot machine with a writeup. I talked it through with my mentor and none of that work went out as scored content.
+My proposal was to design and build eight advanced red-track CTF challenges across four categories the platform had little to no coverage for: insecure communication between agents, cascading autonomous failures, human-trust exploitation, and rogue-agent persistence. I built five of them. Then I live-tested them against the platform's actual production LLM, and the results didn't match the design docs. Every one of them hinged on the model making a single risky judgment call under the right kind of pressure, and that call only landed reliably somewhere around 30 to 40 percent of the time. A challenge that works less than half the time isn't a challenge, it's a slot machine with a writeup. I talked it through with my mentors and with FinBot's chief architect, Venkata Sai Kishore Modalavalasa, and none of that work went out as scored content.
 
 So I redirected. Instead of continuing to chase reliability on judgment-dependent challenges, I spent the second half of the summer auditing FinBot's own code directly, plus independently verifying candidates pulled from the project's own backlog of roughly 300 open GitHub issues, hunting for real, structural weaknesses instead of probabilistic ones. A crash is a crash no matter which model is running that day. That work turned into:
 
@@ -39,7 +41,7 @@ All 13 pull requests below are open against the upstream repo as of this report.
 
 ## The work, PR by PR
 
-### 1. [Cross-Vendor Email: a BOLA/IDOR challenge, built and shipped](https://github.com/GenAI-Security-Project/finbot-ctf/pull/558)
+### 1. [Cross-Vendor Email: a BOLA/IDOR challenge, built and live-verified](https://github.com/GenAI-Security-Project/finbot-ctf/pull/558)
 
 The vendor chat assistant let you ask about a FinMail message by its raw ID, or about another vendor's inbox by ID directly, and nothing on the backend checked whether that message or inbox actually belonged to the vendor asking. That's a textbook broken object-level authorization gap, and it was sitting in the code unintentionally, not manufactured for the sake of having something to build. I turned it into a full challenge: a YAML definition, a custom detector, 28 tests, and a live end-to-end run against the deployed model before the PR ever went up. The detector itself doesn't guess at model behavior. It cross-references the tool-call event's vendor identity against the message's real owner directly at the database layer, so it fires the same way regardless of how the exploit gets phrased.
 
@@ -75,7 +77,7 @@ The orchestrator agent unconditionally instructed its own LLM to confirm a payme
 
 ### 8. [Unauthenticated SSRF through the guardrail webhook](https://github.com/GenAI-Security-Project/finbot-ctf/pull/575)
 
-A Labs feature lets a session register a webhook URL that the server later sends a real HTTP request to. The existing validation only checked bare IP addresses typed directly into the URL and never resolved hostnames through DNS at all, so a hostname that *resolves* to an internal address like `127.0.0.1` sailed straight through. On top of that, every endpoint that registered or triggered the webhook accepted a completely anonymous session. Put those two together and any visitor to the site, logged in or not, could point the server at an internal service and fire it immediately. Fixed both halves: real DNS resolution in the validator, and authentication required on every endpoint that changes state. The DNS fix isn't naive either. My first pass ran the resolution synchronously inside the hot path, and a security review caught that a malicious DNS target could've frozen the event loop for every user on the server at once. Rewrote it to offload onto a worker thread with a hard timeout before it ever shipped.
+A Labs feature lets a session register a webhook URL that the server later sends a real HTTP request to. The existing validation only checked bare IP addresses typed directly into the URL and never resolved hostnames through DNS at all, so a hostname that *resolves* to an internal address like `127.0.0.1` sailed straight through. On top of that, every endpoint that registered or triggered the webhook accepted a completely anonymous session. Put those two together and any visitor to the site, logged in or not, could point the server at an internal service and fire it immediately. Fixed both halves: real DNS resolution in the validator, and authentication required on every endpoint that changes state. The DNS fix isn't naive either. My first pass ran the resolution synchronously inside the hot path, and a security review caught that a malicious DNS target could've frozen the event loop for every user on the server at once. Rewrote it to offload onto a worker thread with a hard timeout before the PR ever went up.
 
 ### 9. [Guardrail payloads could get corrupted before their own signature was computed](https://github.com/GenAI-Security-Project/finbot-ctf/pull/576)
 
@@ -101,7 +103,7 @@ The multi-agent orchestrator captures each agent's summary and hands it to the n
 
 ## What this adds up to
 
-The batch spans a real severity range: critical and high-severity issues (broken access control, an unauthenticated SSRF with a missing-authentication gap layered on top of it, a self-introduced denial-of-service caught and closed before it ever shipped) down to medium-severity payment-pipeline correctness and data-integrity gaps. Every one went through the same process: read the real code first, write a failing test that proves the issue, fix it, get it independently reviewed, and check it actually merges cleanly next to everything else in flight. Several patches corrected real mistakes in the reports that described the underlying issue. Several turned out to be bigger in scope than reported, once I traced the code myself instead of taking the write-up at face value.
+The batch spans a real severity range: critical and high-severity issues (broken access control, an unauthenticated SSRF with a missing-authentication gap layered on top of it, a self-introduced denial-of-service caught and closed before the PR went up) down to medium-severity payment-pipeline correctness and data-integrity gaps. Every one went through the same process: read the real code first, write a failing test that proves the issue, fix it, get it independently reviewed, and check it actually merges cleanly next to everything else in flight. Several patches corrected real mistakes in the reports that described the underlying issue. Several turned out to be bigger in scope than reported, once I traced the code myself instead of taking the write-up at face value.
 
 That's the work: a real, cumulative improvement to a platform other people are actively learning security on, roughly 370 hours across the coding period, outside of community bonding and excluding one week lost entirely to illness.
 
@@ -119,7 +121,7 @@ The third: a security review of your own new code isn't a formality. Across the 
 
 ## Acknowledgements
 
-Thanks to my mentors, Rishi Mondal and Sanjeev Agarwal, for direct feedback throughout the program and for taking the reliability concerns raised in July seriously instead of pushing to ship weak content on schedule. Thanks to FinBot's founders, Venkata Sai Kishore Modalavalasa and Hellen, for showing up to every biweekly live review in person despite their own busy schedules, and for giving clear, final direction at the points in this project that needed it most. Thanks to the OWASP GenAI Security team and the wider FinBot CTF contributor community, whose own quality-assurance work on the codebase's issue backlog made a substantial share of this project possible.
+Thanks to my mentors, Rishi Mondal and Sanjeev Agarwal, for direct feedback throughout the program and for taking the reliability concerns raised in July seriously instead of pushing to ship weak content on schedule. Thanks to FinBot's chief architect, Venkata Sai Kishore Modalavalasa, and co-creator Helen Oakley, for showing up to every biweekly live review in person despite their own busy schedules, and for giving clear, final direction at the points in this project that needed it most. Thanks to the OWASP GenAI Security team and the wider FinBot CTF contributor community, whose own quality-assurance work on the codebase's issue backlog made a substantial share of this project possible.
 
 ---
 
